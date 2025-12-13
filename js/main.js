@@ -36,6 +36,15 @@ scene.add(target);
 camera.position.set(0, 1.6, 5);
 
 /* ===============================
+   🎯 시점 회전 변수
+================================ */
+let yaw = 0;
+let pitch = 0;
+
+const mouseSensitivity = 0.002;
+const touchSensitivity = 0.005;
+
+/* ===============================
    ✅ WASD 이동 (PC)
 ================================ */
 const keys = { w: false, a: false, s: false, d: false };
@@ -82,6 +91,51 @@ window.addEventListener("touchend", () => {
 });
 
 /* ===============================
+   🖱️ PC 마우스 시점 회전
+================================ */
+renderer.domElement.addEventListener("click", () => {
+  renderer.domElement.requestPointerLock();
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (document.pointerLockElement !== renderer.domElement) return;
+
+  yaw -= e.movementX * mouseSensitivity;
+  pitch -= e.movementY * mouseSensitivity;
+
+  pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+});
+
+/* ===============================
+   📱 모바일 시점 회전 (두 손가락)
+================================ */
+let lookTouchX = 0;
+let lookTouchY = 0;
+
+window.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 2) {
+    lookTouchX = e.touches[1].clientX;
+    lookTouchY = e.touches[1].clientY;
+  }
+});
+
+window.addEventListener("touchmove", (e) => {
+  if (e.touches.length === 2) {
+    const t = e.touches[1];
+    const dx = t.clientX - lookTouchX;
+    const dy = t.clientY - lookTouchY;
+
+    yaw -= dx * touchSensitivity;
+    pitch -= dy * touchSensitivity;
+
+    pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+
+    lookTouchX = t.clientX;
+    lookTouchY = t.clientY;
+  }
+});
+
+/* ===============================
    🔫 클릭 / 탭 = 총 쏘기
 ================================ */
 window.addEventListener("click", (e) => {
@@ -115,15 +169,20 @@ window.addEventListener("resize", () => {
 function animate() {
   requestAnimationFrame(animate);
 
-  // PC 이동
+  // 이동 (PC)
   if (keys.w) camera.position.z -= moveSpeed;
   if (keys.s) camera.position.z += moveSpeed;
   if (keys.a) camera.position.x -= moveSpeed;
   if (keys.d) camera.position.x += moveSpeed;
 
-  // 모바일 이동
+  // 이동 (모바일)
   camera.position.x += moveX * touchSpeed;
   camera.position.z += moveZ * touchSpeed;
+
+  // 시점 회전 적용
+  camera.rotation.order = "YXZ";
+  camera.rotation.y = yaw;
+  camera.rotation.x = pitch;
 
   renderer.render(scene, camera);
 }
