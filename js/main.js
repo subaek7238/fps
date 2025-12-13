@@ -36,16 +36,26 @@ scene.add(target);
 camera.position.set(0, 1.6, 5);
 
 // 클릭 = 총 쏘기
-window.addEventListener("click", () => {
+window.addEventListener("click", (e) => {
+  const mouse = new THREE.Vector2(
+    (e.clientX / window.innerWidth) * 2 - 1,
+    -(e.clientY / window.innerHeight) * 2 + 1
+  );
+
   const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera({ x: 0, y: 0 }, camera);
-  const hits = raycaster.intersectObjects([target]);
+  raycaster.setFromCamera(mouse, camera);
+
+  const hits = raycaster.intersectObjects(scene.children);
 
   if (hits.length > 0) {
-    scene.remove(target);
-    console.log("🎯 HIT");
+    const obj = hits[0].object;
+    if (obj === target) {
+      scene.remove(target);
+      console.log("🎯 HIT");
+    }
   }
 });
+
 
 // 리사이즈 대응
 window.addEventListener("resize", () => {
