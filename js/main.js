@@ -35,7 +35,36 @@ scene.add(target);
 // 카메라 위치
 camera.position.set(0, 1.6, 5);
 
-// 클릭 = 총 쏘기
+/* ===============================
+   ✅ WASD 이동 설정
+================================ */
+const keys = {
+  w: false,
+  a: false,
+  s: false,
+  d: false
+};
+
+const moveSpeed = 0.15;
+
+// 키 입력
+window.addEventListener("keydown", (e) => {
+  if (e.key === "w") keys.w = true;
+  if (e.key === "a") keys.a = true;
+  if (e.key === "s") keys.s = true;
+  if (e.key === "d") keys.d = true;
+});
+
+window.addEventListener("keyup", (e) => {
+  if (e.key === "w") keys.w = false;
+  if (e.key === "a") keys.a = false;
+  if (e.key === "s") keys.s = false;
+  if (e.key === "d") keys.d = false;
+});
+
+/* ===============================
+   🔫 클릭 = 총 쏘기
+================================ */
 window.addEventListener("click", (e) => {
   const mouse = new THREE.Vector2(
     (e.clientX / window.innerWidth) * 2 - 1,
@@ -56,7 +85,6 @@ window.addEventListener("click", (e) => {
   }
 });
 
-
 // 리사이즈 대응
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -67,6 +95,13 @@ window.addEventListener("resize", () => {
 // 렌더 루프
 function animate() {
   requestAnimationFrame(animate);
+
+  // ===== WASD 이동 처리 =====
+  if (keys.w) camera.position.z -= moveSpeed;
+  if (keys.s) camera.position.z += moveSpeed;
+  if (keys.a) camera.position.x -= moveSpeed;
+  if (keys.d) camera.position.x += moveSpeed;
+
   renderer.render(scene, camera);
 }
 animate();
