@@ -80,42 +80,26 @@ window.addEventListener("keyup", (e) => {
 });
 
 /* ===============================
-   모바일 이동 (한 손가락)
+   💻 PC 시점 회전 (우클릭)
 ================================ */
-let touchStartX = 0;
-let touchStartY = 0;
-let moveX = 0;
-let moveZ = 0;
-const touchSpeed = 0.002;
+let rightMouseDown = false;
 
-window.addEventListener("touchstart", (e) => {
-  if (e.touches.length === 1) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
+window.addEventListener("mousedown", (e) => {
+  if (e.button === 2) {
+    rightMouseDown = true;
+    renderer.domElement.requestPointerLock();
   }
 });
 
-window.addEventListener("touchmove", (e) => {
-  if (e.touches.length === 1) {
-    moveX = e.touches[0].clientX - touchStartX;
-    moveZ = e.touches[0].clientY - touchStartY;
+window.addEventListener("mouseup", (e) => {
+  if (e.button === 2) {
+    rightMouseDown = false;
+    document.exitPointerLock();
   }
-});
-
-window.addEventListener("touchend", () => {
-  moveX = 0;
-  moveZ = 0;
-});
-
-/* ===============================
-   마우스 시점 회전 (PC)
-================================ */
-renderer.domElement.addEventListener("click", () => {
-  renderer.domElement.requestPointerLock();
 });
 
 document.addEventListener("mousemove", (e) => {
-  if (document.pointerLockElement !== renderer.domElement) return;
+  if (!rightMouseDown) return;
 
   yaw -= e.movementX * mouseSensitivity;
   pitch -= e.movementY * mouseSensitivity;
@@ -123,22 +107,44 @@ document.addEventListener("mousemove", (e) => {
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 });
 
+window.addEventListener("contextmenu", (e) => e.preventDefault());
+
 /* ===============================
-   모바일 시점 회전 (두 손가락)
+   📱 모바일 입력
+   - 왼쪽: 이동
+   - 오른쪽: 시점 회전
 ================================ */
+let touchMoveX = 0;
+let touchMoveZ = 0;
+
 let lookTouchX = 0;
 let lookTouchY = 0;
+let looking = false;
 
 window.addEventListener("touchstart", (e) => {
-  if (e.touches.length === 2) {
-    lookTouchX = e.touches[1].clientX;
-    lookTouchY = e.touches[1].clientY;
+  const t = e.touches[0];
+
+  if (t.clientX < window.innerWidth / 2) {
+    // 이동
+    touchMoveX = 0;
+    touchMoveZ = 0;
+  } else {
+    // 시점 회전
+    looking = true;
+    lookTouchX = t.clientX;
+    lookTouchY = t.clientY;
   }
 });
 
 window.addEventListener("touchmove", (e) => {
-  if (e.touches.length === 2) {
-    const t = e.touches[1];
+  const t = e.touches[0];
+
+  if (t.clientX < window.innerWidth / 2) {
+    // 이동
+    touchMoveX = (t.clientX - window.innerWidth / 4) * 0.002;
+    touchMoveZ = (t.clientY - window.innerHeight / 2) * 0.002;
+  } else if (looking) {
+    // 시점 회전
     const dx = t.clientX - lookTouchX;
     const dy = t.clientY - lookTouchY;
 
@@ -152,8 +158,14 @@ window.addEventListener("touchmove", (e) => {
   }
 });
 
+window.addEventListener("touchend", () => {
+  touchMoveX = 0;
+  touchMoveZ = 0;
+  looking = false;
+});
+
 /* ===============================
-   총 쏘기
+   🔫 총 쏘기
 ================================ */
 window.addEventListener("click", (e) => {
   const mouse = new THREE.Vector2(
@@ -165,7 +177,6 @@ window.addEventListener("click", (e) => {
   raycaster.setFromCamera(mouse, camera);
 
   const hits = raycaster.intersectObjects(scene.children);
-
   if (hits.length > 0 && hits[0].object === target) {
     scene.remove(target);
     console.log("🎯 HIT");
@@ -192,7 +203,7 @@ function animate() {
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
 
-  // 시점 기준 방향 계산
+  // 시점 기준 이동
   camera.getWorldDirection(forward);
   forward.y = 0;
   forward.normalize();
@@ -206,8 +217,8 @@ function animate() {
   if (keys.d) camera.position.addScaledVector(right, moveSpeed);
 
   // 모바일 이동
-  camera.position.addScaledVector(right, moveX * touchSpeed);
-  camera.position.addScaledVector(forward, moveZ * touchSpeed);
+  camera.position.addScaledVector(right, touchMoveX);
+  camera.position.addScaledVector(forward, touchMoveZ);
 
   renderer.render(scene, camera);
 }
