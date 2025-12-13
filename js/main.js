@@ -2,6 +2,9 @@ import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
 console.log("🔥 Three.js 로드 성공");
 
+/* ===============================
+   기본 세팅
+================================ */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
@@ -16,7 +19,9 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// 바닥
+/* ===============================
+   바닥
+================================ */
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(50, 50),
   new THREE.MeshBasicMaterial({ color: 0x333333 })
@@ -24,7 +29,9 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
-// 타겟 큐브
+/* ===============================
+   타겟 큐브
+================================ */
 const target = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 1),
   new THREE.MeshBasicMaterial({ color: 0xff0000 })
@@ -32,11 +39,13 @@ const target = new THREE.Mesh(
 target.position.set(0, 1, -5);
 scene.add(target);
 
-// 카메라 위치
+/* ===============================
+   카메라 위치
+================================ */
 camera.position.set(0, 1.6, 5);
 
 /* ===============================
-   🎯 시점 회전 변수
+   시점 회전 변수
 ================================ */
 let yaw = 0;
 let pitch = 0;
@@ -45,11 +54,17 @@ const mouseSensitivity = 0.002;
 const touchSensitivity = 0.005;
 
 /* ===============================
-   ✅ WASD 이동 (PC)
+   이동 관련 변수
 ================================ */
 const keys = { w: false, a: false, s: false, d: false };
 const moveSpeed = 0.15;
 
+const forward = new THREE.Vector3();
+const right = new THREE.Vector3();
+
+/* ===============================
+   WASD 입력
+================================ */
 window.addEventListener("keydown", (e) => {
   if (e.key === "w") keys.w = true;
   if (e.key === "a") keys.a = true;
@@ -65,7 +80,7 @@ window.addEventListener("keyup", (e) => {
 });
 
 /* ===============================
-   📱 모바일 터치 이동
+   모바일 이동 (한 손가락)
 ================================ */
 let touchStartX = 0;
 let touchStartY = 0;
@@ -74,15 +89,17 @@ let moveZ = 0;
 const touchSpeed = 0.002;
 
 window.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  touchStartX = t.clientX;
-  touchStartY = t.clientY;
+  if (e.touches.length === 1) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
 });
 
 window.addEventListener("touchmove", (e) => {
-  const t = e.touches[0];
-  moveX = t.clientX - touchStartX;
-  moveZ = t.clientY - touchStartY;
+  if (e.touches.length === 1) {
+    moveX = e.touches[0].clientX - touchStartX;
+    moveZ = e.touches[0].clientY - touchStartY;
+  }
 });
 
 window.addEventListener("touchend", () => {
@@ -91,7 +108,7 @@ window.addEventListener("touchend", () => {
 });
 
 /* ===============================
-   🖱️ PC 마우스 시점 회전
+   마우스 시점 회전 (PC)
 ================================ */
 renderer.domElement.addEventListener("click", () => {
   renderer.domElement.requestPointerLock();
@@ -107,7 +124,7 @@ document.addEventListener("mousemove", (e) => {
 });
 
 /* ===============================
-   📱 모바일 시점 회전 (두 손가락)
+   모바일 시점 회전 (두 손가락)
 ================================ */
 let lookTouchX = 0;
 let lookTouchY = 0;
@@ -136,7 +153,7 @@ window.addEventListener("touchmove", (e) => {
 });
 
 /* ===============================
-   🔫 클릭 / 탭 = 총 쏘기
+   총 쏘기
 ================================ */
 window.addEventListener("click", (e) => {
   const mouse = new THREE.Vector2(
@@ -149,41 +166,51 @@ window.addEventListener("click", (e) => {
 
   const hits = raycaster.intersectObjects(scene.children);
 
-  if (hits.length > 0) {
-    const obj = hits[0].object;
-    if (obj === target) {
-      scene.remove(target);
-      console.log("🎯 HIT");
-    }
+  if (hits.length > 0 && hits[0].object === target) {
+    scene.remove(target);
+    console.log("🎯 HIT");
   }
 });
 
-// 리사이즈 대응
+/* ===============================
+   리사이즈
+================================ */
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// 렌더 루프
+/* ===============================
+   렌더 루프
+================================ */
 function animate() {
   requestAnimationFrame(animate);
-
-  // 이동 (PC)
-  if (keys.w) camera.position.z -= moveSpeed;
-  if (keys.s) camera.position.z += moveSpeed;
-  if (keys.a) camera.position.x -= moveSpeed;
-  if (keys.d) camera.position.x += moveSpeed;
-
-  // 이동 (모바일)
-  camera.position.x += moveX * touchSpeed;
-  camera.position.z += moveZ * touchSpeed;
 
   // 시점 회전 적용
   camera.rotation.order = "YXZ";
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
 
+  // 시점 기준 방향 계산
+  camera.getWorldDirection(forward);
+  forward.y = 0;
+  forward.normalize();
+
+  right.crossVectors(forward, camera.up).normalize();
+
+  // PC 이동
+  if (keys.w) camera.position.addScaledVector(forward, moveSpeed);
+  if (keys.s) camera.position.addScaledVector(forward, -moveSpeed);
+  if (keys.a) camera.position.addScaledVector(right, -moveSpeed);
+  if (keys.d) camera.position.addScaledVector(right, moveSpeed);
+
+  // 모바일 이동
+  camera.position.addScaledVector(right, moveX * touchSpeed);
+  camera.position.addScaledVector(forward, moveZ * touchSpeed);
+
   renderer.render(scene, camera);
 }
+
 animate();
+
