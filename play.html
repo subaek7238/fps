@@ -2,22 +2,31 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>FPS Game</title>
+  <title>Web FPS</title>
   <style>
     body {
       margin: 0;
+      overflow: hidden;
       background: black;
-      color: white;
-      font-family: Arial;
+    }
+    #crosshair {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: white;
+      transform: translate(-50%, -50%);
+      z-index: 10;
     }
   </style>
 </head>
-  <script type="module" src="js/main.js"></script>
-
 <body>
 
-<h1>게임 페이지</h1>
-<p야르 p</p<야/p
+<div id="crosshair"></div>
+
+<!-- 중요: type="module" -->
+<script type="module" src="js/main.js"></script>
 
 </body>
 </html>
