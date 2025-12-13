@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>Web FPS</title>
+
   <style>
     body {
       margin: 0;
       overflow: hidden;
       background: black;
     }
+
+    /* 조준점 */
     #crosshair {
       position: fixed;
       top: 50%;
@@ -19,14 +22,38 @@
       transform: translate(-50%, -50%);
       z-index: 10;
     }
+
+    /* 🔫 모바일 총 쏘기 버튼 */
+    #shootBtn {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 0, 0, 0.7);
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+      z-index: 20;
+    }
+
+    #shootBtn:active {
+      background: rgba(200, 0, 0, 0.9);
+    }
   </style>
 </head>
 <body>
 
-<div id="crosshair"></div>
+  <!-- 조준점 -->
+  <div id="crosshair"></div>
 
-<!-- 중요: type="module" -->
-<script type="module" src="js/main.js"></script>
+  <!-- 🔫 총 버튼 (모바일 전용) -->
+  <button id="shootBtn">🔫</button>
+
+  <!-- Three.js 게임 코드 -->
+  <script type="module" src="js/main.js"></script>
 
 </body>
 </html>
