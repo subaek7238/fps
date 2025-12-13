@@ -36,18 +36,11 @@ scene.add(target);
 camera.position.set(0, 1.6, 5);
 
 /* ===============================
-   ✅ WASD 이동 설정
+   ✅ WASD 이동 (PC)
 ================================ */
-const keys = {
-  w: false,
-  a: false,
-  s: false,
-  d: false
-};
-
+const keys = { w: false, a: false, s: false, d: false };
 const moveSpeed = 0.15;
 
-// 키 입력
 window.addEventListener("keydown", (e) => {
   if (e.key === "w") keys.w = true;
   if (e.key === "a") keys.a = true;
@@ -63,7 +56,33 @@ window.addEventListener("keyup", (e) => {
 });
 
 /* ===============================
-   🔫 클릭 = 총 쏘기
+   📱 모바일 터치 이동
+================================ */
+let touchStartX = 0;
+let touchStartY = 0;
+let moveX = 0;
+let moveZ = 0;
+const touchSpeed = 0.002;
+
+window.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+});
+
+window.addEventListener("touchmove", (e) => {
+  const t = e.touches[0];
+  moveX = t.clientX - touchStartX;
+  moveZ = t.clientY - touchStartY;
+});
+
+window.addEventListener("touchend", () => {
+  moveX = 0;
+  moveZ = 0;
+});
+
+/* ===============================
+   🔫 클릭 / 탭 = 총 쏘기
 ================================ */
 window.addEventListener("click", (e) => {
   const mouse = new THREE.Vector2(
@@ -96,11 +115,15 @@ window.addEventListener("resize", () => {
 function animate() {
   requestAnimationFrame(animate);
 
-  // ===== WASD 이동 처리 =====
+  // PC 이동
   if (keys.w) camera.position.z -= moveSpeed;
   if (keys.s) camera.position.z += moveSpeed;
   if (keys.a) camera.position.x -= moveSpeed;
   if (keys.d) camera.position.x += moveSpeed;
+
+  // 모바일 이동
+  camera.position.x += moveX * touchSpeed;
+  camera.position.z += moveZ * touchSpeed;
 
   renderer.render(scene, camera);
 }
