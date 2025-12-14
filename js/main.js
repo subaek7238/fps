@@ -46,22 +46,18 @@ const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
 const wallHeight = 5;
 const wallThickness = 0.5;
 
-// 앞벽
 const frontWall = new THREE.Mesh(new THREE.BoxGeometry(20, wallHeight, wallThickness), wallMaterial);
 frontWall.position.set(0, wallHeight / 2, -10);
 scene.add(frontWall);
 
-// 뒤벽
 const backWall = new THREE.Mesh(new THREE.BoxGeometry(20, wallHeight, wallThickness), wallMaterial);
 backWall.position.set(0, wallHeight / 2, 10);
 scene.add(backWall);
 
-// 왼쪽벽
 const leftWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, 20), wallMaterial);
 leftWall.position.set(-10, wallHeight / 2, 0);
 scene.add(leftWall);
 
-// 오른쪽벽
 const rightWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, 20), wallMaterial);
 rightWall.position.set(10, wallHeight / 2, 0);
 scene.add(rightWall);
@@ -134,7 +130,7 @@ document.addEventListener("mousemove", (e)=>{
 window.addEventListener("contextmenu",(e)=>e.preventDefault());
 
 /* ===============================
-   모바일 조이스틱 입력
+   모바일 조이스틱 이동
 ================================ */
 const joystick = document.getElementById("joystick");
 let joyStartX=0, joyStartY=0, joyMoveX=0, joyMoveZ=0, joystickActive=false;
@@ -159,6 +155,34 @@ joystick.addEventListener("touchend",()=>{
   joyMoveX=0;
   joyMoveZ=0;
 });
+
+/* ===============================
+   모바일 시점 회전 (오른쪽 화면 터치)
+================================ */
+let lookX=0, lookY=0, looking=false;
+
+window.addEventListener("touchstart",(e)=>{
+  const t=e.touches[0];
+  if(t.clientX>window.innerWidth/2){
+    looking=true;
+    lookX=t.clientX;
+    lookY=t.clientY;
+  }
+});
+
+window.addEventListener("touchmove",(e)=>{
+  if(!looking) return;
+  const t=e.touches[0];
+  if(t.clientX>window.innerWidth/2){
+    yaw-=(t.clientX-lookX)*touchSensitivity;
+    pitch-=(t.clientY-lookY)*touchSensitivity;
+    pitch=Math.max(-Math.PI/2, Math.min(Math.PI/2,pitch));
+    lookX=t.clientX;
+    lookY=t.clientY;
+  }
+});
+
+window.addEventListener("touchend",()=>{ looking=false; });
 
 /* ===============================
    🔫 발사 로직
@@ -235,9 +259,9 @@ function animate(){
 
   // 모바일 조이스틱 이동
   camera.position.addScaledVector(right,joyMoveX);
-  camera.position.addScaledVector(forward,joyMoveZ);
+  camera.position.addScaledVector(forward,-joyMoveZ); // Z 반전 적용
 
-  // 벽 통과 방지
+  // 벽 충돌
   checkCollision(camera.position);
 
   renderer.render(scene,camera);
