@@ -33,6 +33,7 @@ scene.add(floor);
 ================================ */
 const ambientLight = new THREE.AmbientLight(0xffffff,0.5);
 scene.add(ambientLight);
+
 const directionalLight = new THREE.DirectionalLight(0xffffff,1);
 directionalLight.position.set(5,10,7.5);
 scene.add(directionalLight);
@@ -100,31 +101,49 @@ const right=new THREE.Vector3();
 /* ===============================
    WASD
 ================================ */
-window.addEventListener("keydown",e=>{if(keys[e.key]!==undefined) keys[e.key]=true;});
-window.addEventListener("keyup",e=>{if(keys[e.key]!==undefined) keys[e.key]=false;});
+window.addEventListener("keydown",e=>{
+  if(keys[e.key]!==undefined) keys[e.key]=true;
+});
+window.addEventListener("keyup",e=>{
+  if(keys[e.key]!==undefined) keys[e.key]=false;
+});
 
 /* ===============================
    💻 PC 시점 회전 (우클릭)
 ================================ */
 let rightMouseDown=false;
+
 window.addEventListener("mousedown",e=>{
-  if(e.button===2){rightMouseDown=true; renderer.domElement.requestPointerLock();}
+  if(e.button===2){
+    rightMouseDown=true;
+    renderer.domElement.requestPointerLock();
+  }
   if(e.button===0) shoot();
 });
-window.addEventListener("mouseup",e=>{if(e.button===2){rightMouseDown=false; document.exitPointerLock();}});
+
+window.addEventListener("mouseup",e=>{
+  if(e.button===2){
+    rightMouseDown=false;
+    document.exitPointerLock();
+  }
+});
+
 document.addEventListener("mousemove",e=>{
   if(!rightMouseDown) return;
   yaw-=e.movementX*mouseSensitivity;
   pitch-=e.movementY*mouseSensitivity;
   pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch));
 });
+
 window.addEventListener("contextmenu",e=>e.preventDefault());
 
 /* ===============================
-   모바일 조이스틱 이동
+   📱 모바일 조이스틱 이동 (왼쪽)
 ================================ */
 const joystick=document.getElementById("joystick");
-let joyStartX=0,joyStartY=0,joyMoveX=0,joyMoveZ=0,joystickActive=false;
+let joyStartX=0, joyStartY=0;
+let joyMoveX=0, joyMoveZ=0;
+let joystickActive=false;
 
 joystick.addEventListener("touchstart",e=>{
   e.preventDefault();
@@ -133,38 +152,53 @@ joystick.addEventListener("touchstart",e=>{
   joyStartX=t.clientX;
   joyStartY=t.clientY;
 });
+
 joystick.addEventListener("touchmove",e=>{
   if(!joystickActive) return;
   const t=e.touches[0];
   joyMoveX=(t.clientX-joyStartX)*0.01;
   joyMoveZ=(t.clientY-joyStartY)*0.01;
 });
+
 joystick.addEventListener("touchend",()=>{
   joystickActive=false;
-  joyMoveX=0; joyMoveZ=0;
+  joyMoveX=0;
+  joyMoveZ=0;
 });
 
 /* ===============================
-   모바일 화면 우측 터치로 시점
+   📱 모바일 시점 회전 (오른쪽 화면)
 ================================ */
-let lookX=0, lookY=0, looking=false;
+// FIX: 이동 중에도 회전 가능하게 분리
+let lookX=0, lookY=0;
+let looking=false;
+
 window.addEventListener("touchstart",e=>{
-  const t=e.touches[0];
-  if(t.clientX>window.innerWidth/2){
-    looking=true; lookX=t.clientX; lookY=t.clientY;
+  for(const t of e.touches){
+    if(t.clientX > window.innerWidth/2){
+      looking=true;
+      lookX=t.clientX;
+      lookY=t.clientY;
+    }
   }
-});
+},{passive:false});
+
 window.addEventListener("touchmove",e=>{
   if(!looking) return;
-  const t=e.touches[0];
-  if(t.clientX>window.innerWidth/2){
-    yaw-=(t.clientX-lookX)*touchSensitivity;
-    pitch-=(t.clientY-lookY)*touchSensitivity;
-    pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch));
-    lookX=t.clientX; lookY=t.clientY;
+  for(const t of e.touches){
+    if(t.clientX > window.innerWidth/2){
+      yaw-=(t.clientX-lookX)*touchSensitivity;
+      pitch-=(t.clientY-lookY)*touchSensitivity;
+      pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch));
+      lookX=t.clientX;
+      lookY=t.clientY;
+    }
   }
+},{passive:false});
+
+window.addEventListener("touchend",()=>{
+  looking=false;
 });
-window.addEventListener("touchend",()=>{looking=false;});
 
 /* ===============================
    🔫 발사 로직
@@ -177,13 +211,18 @@ function shoot(){
     const hitBox=hits[0].object;
     scene.remove(hitBox);
     boxes.splice(boxes.indexOf(hitBox),1);
-    const newBox=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),boxMaterial);
-    const x=(Math.random()-0.5)*18;
-    const z=(Math.random()-0.5)*18;
-    newBox.position.set(x,0.5,z);
+
+    const newBox=new THREE.Mesh(
+      new THREE.BoxGeometry(1,1,1),
+      boxMaterial
+    );
+    newBox.position.set(
+      (Math.random()-0.5)*18,
+      0.5,
+      (Math.random()-0.5)*18
+    );
     scene.add(newBox);
     boxes.push(newBox);
-    console.log("🎯 HIT BOX");
   }
 }
 
@@ -192,7 +231,10 @@ function shoot(){
 ================================ */
 const shootBtn=document.getElementById("shootBtn");
 if(shootBtn){
-  shootBtn.addEventListener("touchstart",e=>{e.preventDefault(); shoot();});
+  shootBtn.addEventListener("touchstart",e=>{
+    e.preventDefault();
+    shoot();
+  });
 }
 
 /* ===============================
@@ -220,6 +262,7 @@ function checkCollision(pos){
 ================================ */
 function animate(){
   requestAnimationFrame(animate);
+
   camera.rotation.order="YXZ";
   camera.rotation.y=yaw;
   camera.rotation.x=pitch;
@@ -235,13 +278,12 @@ function animate(){
   if(keys.a) camera.position.addScaledVector(right,-moveSpeed);
   if(keys.d) camera.position.addScaledVector(right,moveSpeed);
 
-  // 모바일 조이스틱 이동 (Z 반전 적용)
+  // 모바일 이동
   camera.position.addScaledVector(right,joyMoveX);
   camera.position.addScaledVector(forward,-joyMoveZ);
 
-  // 벽 충돌
   checkCollision(camera.position);
-
   renderer.render(scene,camera);
 }
 animate();
+
