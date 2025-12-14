@@ -113,14 +113,14 @@ window.addEventListener("keyup", (e) => { if(keys[e.key]!==undefined) keys[e.key
 ================================ */
 let rightMouseDown = false;
 
-window.addEventListener("mousedown", (e) => {
+window.addEventListener("mousedown", (e)=>{
   if(e.button===2){ rightMouseDown=true; renderer.domElement.requestPointerLock(); }
   if(e.button===0) shoot();
 });
 
-window.addEventListener("mouseup", (e)=>{ if(e.button===2){ rightMouseDown=false; document.exitPointerLock(); } });
+window.addEventListener("mouseup",(e)=>{ if(e.button===2){ rightMouseDown=false; document.exitPointerLock(); } });
 
-document.addEventListener("mousemove", (e)=>{
+document.addEventListener("mousemove",(e)=>{
   if(!rightMouseDown) return;
   yaw -= e.movementX*mouseSensitivity;
   pitch -= e.movementY*mouseSensitivity;
@@ -259,7 +259,7 @@ function animate(){
 
   // 모바일 조이스틱 이동
   camera.position.addScaledVector(right,joyMoveX);
-  camera.position.addScaledVector(forward,-joyMoveZ); // Z 반전 적용
+  camera.position.addScaledVector(forward,-joyMoveZ);
 
   // 벽 충돌
   checkCollision(camera.position);
@@ -267,4 +267,3 @@ function animate(){
   renderer.render(scene,camera);
 }
 animate();
-
