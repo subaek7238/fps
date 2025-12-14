@@ -23,7 +23,7 @@
       z-index: 10;
     }
 
-    /* 🔫 모바일 총 쏘기 버튼 */
+    /* 🔫 모바일 총 버튼 */
     #shootBtn {
       position: fixed;
       right: 20px;
@@ -39,21 +39,21 @@
       z-index: 20;
     }
 
-    <!-- body 안 어디든, shootBtn 아래쪽에 넣기 -->
-<div id="joystick" style="
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: rgba(200,200,200,0.3);
-  touch-action: none;
-  z-index: 10;
-"></div>
-
     #shootBtn:active {
       background: rgba(200, 0, 0, 0.9);
+    }
+
+    /* 왼쪽 하단 조이스틱 */
+    #joystick {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(200,200,200,0.3);
+      touch-action: none;
+      z-index: 10;
     }
   </style>
 </head>
@@ -64,6 +64,9 @@
 
   <!-- 🔫 총 버튼 (모바일 전용) -->
   <button id="shootBtn">🔫</button>
+
+  <!-- 왼쪽 하단 조이스틱 -->
+  <div id="joystick"></div>
 
   <!-- Three.js 게임 코드 -->
   <script type="module" src="js/main.js"></script>
