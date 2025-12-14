@@ -6,7 +6,7 @@ console.log("🔥 Three.js 로드 성공");
    기본 세팅
 ================================ */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+scene.background = new THREE.Color(0xf0f0f0);
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -24,10 +24,17 @@ document.body.appendChild(renderer.domElement);
 ================================ */
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(50, 50),
-  new THREE.MeshStandardMaterial({ color: 0x333333 })
+  new THREE.MeshStandardMaterial({ color: 0xffffff })
 );
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // 전체 밝기
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // 그림자 효과
+directionalLight.position.set(5, 10, 7.5);
+scene.add(directionalLight);
 
 /* ===============================
    집 맵 (벽)
