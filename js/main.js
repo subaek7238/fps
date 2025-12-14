@@ -29,10 +29,10 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // 전체 밝기
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); 
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // 그림자 효과
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 7.5);
 scene.add(directionalLight);
 
@@ -125,7 +125,7 @@ window.addEventListener("mousedown", (e) => {
     rightMouseDown = true;
     renderer.domElement.requestPointerLock();
   }
-  if (e.button === 0) shoot(); // 좌클릭 발사
+  if (e.button === 0) shoot();
 });
 
 window.addEventListener("mouseup", (e) => {
@@ -194,14 +194,12 @@ function shoot() {
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
-  // 박스만 체크
   const hits = raycaster.intersectObjects(boxes);
   if (hits.length > 0) {
     const hitBox = hits[0].object;
     scene.remove(hitBox);
     boxes.splice(boxes.indexOf(hitBox), 1);
 
-    // 새로운 박스 생성 (랜덤 위치)
     const newBox = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), boxMaterial);
     const x = (Math.random() - 0.5) * 18;
     const z = (Math.random() - 0.5) * 18;
@@ -234,6 +232,17 @@ window.addEventListener("resize", () => {
 });
 
 /* ===============================
+   벽 충돌 처리
+================================ */
+const mapLimit = { minX: -9.5, maxX: 9.5, minZ: -9.5, maxZ: 9.5 };
+function checkCollision(pos) {
+  if (pos.x < mapLimit.minX) pos.x = mapLimit.minX;
+  if (pos.x > mapLimit.maxX) pos.x = mapLimit.maxX;
+  if (pos.z < mapLimit.minZ) pos.z = mapLimit.minZ;
+  if (pos.z > mapLimit.maxZ) pos.z = mapLimit.maxZ;
+}
+
+/* ===============================
    렌더 루프
 ================================ */
 function animate() {
@@ -256,7 +265,9 @@ function animate() {
   camera.position.addScaledVector(right, touchMoveX);
   camera.position.addScaledVector(forward, touchMoveZ);
 
+  // 🔹 벽 통과 방지
+  checkCollision(camera.position);
+
   renderer.render(scene, camera);
 }
 animate();
-
