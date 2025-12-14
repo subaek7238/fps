@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Web FPS</title>
 
-  <!-- 카톡/모바일 확대 방지 -->
+  <!-- ✅ 카톡 / 모바일 확대 방지 -->
   <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    content="width=device-width, initial-scale=1.0,
+    maximum-scale=1.0, user-scalable=no">
 
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       overflow: hidden;
+      touch-action: none; /* FIX: 확대/스크롤 차단 */
       background: black;
-      touch-action: none; /* 🔥 모바일 확대/드래그 방지 */
     }
 
     #crosshair {
@@ -54,13 +56,12 @@
     }
   </style>
 </head>
-<body>
 
+<body>
   <div id="crosshair"></div>
   <button id="shootBtn">🔫</button>
   <div id="joystick"></div>
 
-  <!-- JS -->
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
