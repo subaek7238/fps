@@ -29,6 +29,9 @@ const floor = new THREE.Mesh(
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
+/* ===============================
+   조명
+================================ */
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); 
 scene.add(ambientLight);
 
@@ -92,7 +95,6 @@ camera.position.set(0, 1.6, 5);
 ================================ */
 let yaw = 0;
 let pitch = 0;
-
 const mouseSensitivity = 0.002;
 const touchSensitivity = 0.005;
 
@@ -101,19 +103,14 @@ const touchSensitivity = 0.005;
 ================================ */
 const keys = { w: false, a: false, s: false, d: false };
 const moveSpeed = 0.15;
-
 const forward = new THREE.Vector3();
 const right = new THREE.Vector3();
 
 /* ===============================
    WASD
 ================================ */
-window.addEventListener("keydown", (e) => {
-  if (keys[e.key] !== undefined) keys[e.key] = true;
-});
-window.addEventListener("keyup", (e) => {
-  if (keys[e.key] !== undefined) keys[e.key] = false;
-});
+window.addEventListener("keydown", (e) => { if(keys[e.key]!==undefined) keys[e.key]=true; });
+window.addEventListener("keyup", (e) => { if(keys[e.key]!==undefined) keys[e.key]=false; });
 
 /* ===============================
    💻 PC 시점 회전 (우클릭)
@@ -121,92 +118,65 @@ window.addEventListener("keyup", (e) => {
 let rightMouseDown = false;
 
 window.addEventListener("mousedown", (e) => {
-  if (e.button === 2) {
-    rightMouseDown = true;
-    renderer.domElement.requestPointerLock();
-  }
-  if (e.button === 0) shoot();
+  if(e.button===2){ rightMouseDown=true; renderer.domElement.requestPointerLock(); }
+  if(e.button===0) shoot();
 });
 
-window.addEventListener("mouseup", (e) => {
-  if (e.button === 2) {
-    rightMouseDown = false;
-    document.exitPointerLock();
-  }
+window.addEventListener("mouseup", (e)=>{ if(e.button===2){ rightMouseDown=false; document.exitPointerLock(); } });
+
+document.addEventListener("mousemove", (e)=>{
+  if(!rightMouseDown) return;
+  yaw -= e.movementX*mouseSensitivity;
+  pitch -= e.movementY*mouseSensitivity;
+  pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
 });
 
-document.addEventListener("mousemove", (e) => {
-  if (!rightMouseDown) return;
-
-  yaw -= e.movementX * mouseSensitivity;
-  pitch -= e.movementY * mouseSensitivity;
-  pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
-});
-
-window.addEventListener("contextmenu", (e) => e.preventDefault());
+window.addEventListener("contextmenu",(e)=>e.preventDefault());
 
 /* ===============================
-   📱 모바일 입력
+   모바일 조이스틱 입력
 ================================ */
-let touchMoveX = 0;
-let touchMoveZ = 0;
+const joystick = document.getElementById("joystick");
+let joyStartX=0, joyStartY=0, joyMoveX=0, joyMoveZ=0, joystickActive=false;
 
-let lookX = 0;
-let lookY = 0;
-let looking = false;
-
-window.addEventListener("touchstart", (e) => {
-  const t = e.touches[0];
-  if (t.clientX < window.innerWidth / 2) {
-    touchMoveX = 0;
-    touchMoveZ = 0;
-  } else {
-    looking = true;
-    lookX = t.clientX;
-    lookY = t.clientY;
-  }
+joystick.addEventListener("touchstart",(e)=>{
+  e.preventDefault();
+  joystickActive=true;
+  const t=e.touches[0];
+  joyStartX=t.clientX;
+  joyStartY=t.clientY;
 });
 
-window.addEventListener("touchmove", (e) => {
-  const t = e.touches[0];
-  if (t.clientX < window.innerWidth / 2) {
-    touchMoveX = (t.clientX - window.innerWidth / 4) * 0.002;
-    touchMoveZ = (t.clientY - window.innerHeight / 2) * 0.002;
-  } else if (looking) {
-    yaw -= (t.clientX - lookX) * touchSensitivity;
-    pitch -= (t.clientY - lookY) * touchSensitivity;
-    pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
-    lookX = t.clientX;
-    lookY = t.clientY;
-  }
+joystick.addEventListener("touchmove",(e)=>{
+  if(!joystickActive) return;
+  const t=e.touches[0];
+  joyMoveX=(t.clientX-joyStartX)*0.01;
+  joyMoveZ=(t.clientY-joyStartY)*0.01;
 });
 
-window.addEventListener("touchend", () => {
-  touchMoveX = 0;
-  touchMoveZ = 0;
-  looking = false;
+joystick.addEventListener("touchend",()=>{
+  joystickActive=false;
+  joyMoveX=0;
+  joyMoveZ=0;
 });
 
 /* ===============================
-   🔫 발사 로직 (공통)
+   🔫 발사 로직
 ================================ */
-function shoot() {
-  const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-
-  const hits = raycaster.intersectObjects(boxes);
-  if (hits.length > 0) {
-    const hitBox = hits[0].object;
+function shoot(){
+  const raycaster=new THREE.Raycaster();
+  raycaster.setFromCamera(new THREE.Vector2(0,0),camera);
+  const hits=raycaster.intersectObjects(boxes);
+  if(hits.length>0){
+    const hitBox=hits[0].object;
     scene.remove(hitBox);
-    boxes.splice(boxes.indexOf(hitBox), 1);
-
-    const newBox = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), boxMaterial);
-    const x = (Math.random() - 0.5) * 18;
-    const z = (Math.random() - 0.5) * 18;
-    newBox.position.set(x, 0.5, z);
+    boxes.splice(boxes.indexOf(hitBox),1);
+    const newBox=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),boxMaterial);
+    const x=(Math.random()-0.5)*18;
+    const z=(Math.random()-0.5)*18;
+    newBox.position.set(x,0.5,z);
     scene.add(newBox);
     boxes.push(newBox);
-
     console.log("🎯 HIT BOX");
   }
 }
@@ -214,9 +184,9 @@ function shoot() {
 /* ===============================
    모바일 발사 버튼
 ================================ */
-const shootBtn = document.getElementById("shootBtn");
-if (shootBtn) {
-  shootBtn.addEventListener("touchstart", (e) => {
+const shootBtn=document.getElementById("shootBtn");
+if(shootBtn){
+  shootBtn.addEventListener("touchstart",(e)=>{
     e.preventDefault();
     shoot();
   });
@@ -225,49 +195,52 @@ if (shootBtn) {
 /* ===============================
    리사이즈
 ================================ */
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+window.addEventListener("resize",()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
 /* ===============================
-   벽 충돌 처리
+   벽 충돌
 ================================ */
-const mapLimit = { minX: -9.5, maxX: 9.5, minZ: -9.5, maxZ: 9.5 };
-function checkCollision(pos) {
-  if (pos.x < mapLimit.minX) pos.x = mapLimit.minX;
-  if (pos.x > mapLimit.maxX) pos.x = mapLimit.maxX;
-  if (pos.z < mapLimit.minZ) pos.z = mapLimit.minZ;
-  if (pos.z > mapLimit.maxZ) pos.z = mapLimit.maxZ;
+const mapLimit={minX:-9.5,maxX:9.5,minZ:-9.5,maxZ:9.5};
+function checkCollision(pos){
+  if(pos.x<mapLimit.minX) pos.x=mapLimit.minX;
+  if(pos.x>mapLimit.maxX) pos.x=mapLimit.maxX;
+  if(pos.z<mapLimit.minZ) pos.z=mapLimit.minZ;
+  if(pos.z>mapLimit.maxZ) pos.z=mapLimit.maxZ;
 }
 
 /* ===============================
    렌더 루프
 ================================ */
-function animate() {
+function animate(){
   requestAnimationFrame(animate);
 
-  camera.rotation.order = "YXZ";
-  camera.rotation.y = yaw;
-  camera.rotation.x = pitch;
+  camera.rotation.order="YXZ";
+  camera.rotation.y=yaw;
+  camera.rotation.x=pitch;
 
   camera.getWorldDirection(forward);
-  forward.y = 0;
+  forward.y=0;
   forward.normalize();
-  right.crossVectors(forward, camera.up).normalize();
+  right.crossVectors(forward,camera.up).normalize();
 
-  if (keys.w) camera.position.addScaledVector(forward, moveSpeed);
-  if (keys.s) camera.position.addScaledVector(forward, -moveSpeed);
-  if (keys.a) camera.position.addScaledVector(right, -moveSpeed);
-  if (keys.d) camera.position.addScaledVector(right, moveSpeed);
+  // PC 이동
+  if(keys.w) camera.position.addScaledVector(forward,moveSpeed);
+  if(keys.s) camera.position.addScaledVector(forward,-moveSpeed);
+  if(keys.a) camera.position.addScaledVector(right,-moveSpeed);
+  if(keys.d) camera.position.addScaledVector(right,moveSpeed);
 
-  camera.position.addScaledVector(right, touchMoveX);
-  camera.position.addScaledVector(forward, touchMoveZ);
+  // 모바일 조이스틱 이동
+  camera.position.addScaledVector(right,joyMoveX);
+  camera.position.addScaledVector(forward,joyMoveZ);
 
-  // 🔹 벽 통과 방지
+  // 벽 통과 방지
   checkCollision(camera.position);
 
-  renderer.render(scene, camera);
+  renderer.render(scene,camera);
 }
 animate();
+
