@@ -1,42 +1,66 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>FPS HUB</title>
+  <meta charset="UTF-8" />
+  <title>Web FPS</title>
+
+  <!-- 카톡/모바일 확대 방지 -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
   <style>
     body {
       margin: 0;
+      overflow: hidden;
       background: black;
-      color: white;
-      height: 100vh;
-
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-
-      font-family: Arial, sans-serif;
+      touch-action: none; /* 🔥 모바일 확대/드래그 방지 */
     }
 
-    a {
-      margin-top: 20px;
-      padding: 15px 40px;
-      background: red;
-      color: white;
-      text-decoration: none;
-      font-size: 24px;
-      font-weight: bold;
-      border-radius: 8px;
+    #crosshair {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: white;
+      transform: translate(-50%, -50%);
+      z-index: 10;
     }
 
-    a:hover {
-      background: darkred;
+    #shootBtn {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,0,0,0.7);
+      color: white;
+      font-size: 32px;
+      z-index: 20;
+    }
+
+    #joystick {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(200,200,200,0.3);
+      z-index: 10;
+      touch-action: none;
     }
   </style>
 </head>
 <body>
-  <h1>Web FPS</h1>
-  <a href="play.html">▶ PLAY</a>
+
+  <div id="crosshair"></div>
+  <button id="shootBtn">🔫</button>
+  <div id="joystick"></div>
+
+  <!-- JS -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
