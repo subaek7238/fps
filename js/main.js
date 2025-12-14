@@ -24,20 +24,56 @@ document.body.appendChild(renderer.domElement);
 ================================ */
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(50, 50),
-  new THREE.MeshBasicMaterial({ color: 0x333333 })
+  new THREE.MeshStandardMaterial({ color: 0x333333 })
 );
 floor.rotation.x = -Math.PI / 2;
 scene.add(floor);
 
 /* ===============================
-   타겟 큐브
+   집 맵 (벽)
 ================================ */
-const target = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({ color: 0xff0000 })
-);
-target.position.set(0, 1, -5);
-scene.add(target);
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff });
+const wallHeight = 5;
+const wallThickness = 0.5;
+
+// 앞벽
+const frontWall = new THREE.Mesh(new THREE.BoxGeometry(20, wallHeight, wallThickness), wallMaterial);
+frontWall.position.set(0, wallHeight / 2, -10);
+scene.add(frontWall);
+
+// 뒤벽
+const backWall = new THREE.Mesh(new THREE.BoxGeometry(20, wallHeight, wallThickness), wallMaterial);
+backWall.position.set(0, wallHeight / 2, 10);
+scene.add(backWall);
+
+// 왼쪽벽
+const leftWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, 20), wallMaterial);
+leftWall.position.set(-10, wallHeight / 2, 0);
+scene.add(leftWall);
+
+// 오른쪽벽
+const rightWall = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, 20), wallMaterial);
+rightWall.position.set(10, wallHeight / 2, 0);
+scene.add(rightWall);
+
+/* ===============================
+   빨간 박스 3개
+================================ */
+const boxMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+const boxes = [];
+
+const boxPositions = [
+  new THREE.Vector3(-5, 0.5, 0),
+  new THREE.Vector3(0, 0.5, 0),
+  new THREE.Vector3(5, 0.5, 0)
+];
+
+boxPositions.forEach(pos => {
+  const box = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), boxMaterial);
+  box.position.copy(pos);
+  scene.add(box);
+  boxes.push(box);
+});
 
 /* ===============================
    카메라 위치
@@ -104,7 +140,6 @@ window.addEventListener("contextmenu", (e) => e.preventDefault());
 
 /* ===============================
    📱 모바일 입력
-   왼쪽: 이동 / 오른쪽: 시점
 ================================ */
 let touchMoveX = 0;
 let touchMoveZ = 0;
@@ -152,15 +187,27 @@ function shoot() {
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
-  const hits = raycaster.intersectObjects(scene.children);
-  if (hits.length && hits[0].object === target) {
-    scene.remove(target);
-    console.log("🎯 HIT");
+  // 박스만 체크
+  const hits = raycaster.intersectObjects(boxes);
+  if (hits.length > 0) {
+    const hitBox = hits[0].object;
+    scene.remove(hitBox);
+    boxes.splice(boxes.indexOf(hitBox), 1);
+
+    // 새로운 박스 생성 (랜덤 위치)
+    const newBox = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), boxMaterial);
+    const x = (Math.random() - 0.5) * 18;
+    const z = (Math.random() - 0.5) * 18;
+    newBox.position.set(x, 0.5, z);
+    scene.add(newBox);
+    boxes.push(newBox);
+
+    console.log("🎯 HIT BOX");
   }
 }
 
 /* ===============================
-   📱 모바일 발사 버튼
+   모바일 발사 버튼
 ================================ */
 const shootBtn = document.getElementById("shootBtn");
 if (shootBtn) {
