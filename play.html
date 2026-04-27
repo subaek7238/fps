@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Web FPS</title>
 
-  <!-- 카톡/모바일 최적화 -->
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <style>
@@ -14,19 +14,19 @@
       background: black;
     }
 
-    /* 조준점 */
+  
     #crosshair {
       position: fixed;
       top: 50%;
       left: 50%;
       width: 6px;
       height: 6px;
-      background: white;
+      background: Rainbow;
       transform: translate(-50%, -50%);
       z-index: 10;
     }
 
-    /* 🔫 모바일 총 버튼 */
+
     #shootBtn {
       position: fixed;
       right: 20px;
@@ -46,7 +46,7 @@
       background: rgba(200,0,0,0.9);
     }
 
-    /* 조이스틱 (왼쪽 이동) */
+   
     #joystick {
       position: fixed;
       bottom: 20px;
@@ -62,16 +62,15 @@
 </head>
 <body>
 
-  <!-- 조준점 -->
+
   <div id="crosshair"></div>
 
-  <!-- 총 버튼 -->
+
   <button id="shootBtn">🔫</button>
 
-  <!-- 왼쪽 조이스틱 -->
   <div id="joystick"></div>
 
-  <!-- JS 불러오기 -->
+
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
